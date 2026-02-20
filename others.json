@@ -1,0 +1,18 @@
+[
+	{
+		"name":"精密拆装扳手",
+		"file":"avares://CurrencyWarsTool/Assets/others/精密拆装扳手.png"
+	},
+	{
+		"name":"前台",
+		"file":"avares://CurrencyWarsTool/Assets/others/前台.png"
+	},
+	{
+		"name":"后台",
+		"file":"avares://CurrencyWarsTool/Assets/others/后台.png"
+	},
+	{
+		"name":"前后台",
+		"file":"avares://CurrencyWarsTool/Assets/others/前后台.png"
+	}
+]

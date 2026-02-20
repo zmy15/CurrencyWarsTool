@@ -1,0 +1,142 @@
+[
+    {
+        "name": "仙舟星徽",
+        "bonds": [
+            "仙舟"
+        ],
+        "file": "avares://CurrencyWarsTool/Assets/equipment/仙舟星徽.png"
+    },
+    {
+        "name": "减益星徽",
+        "bonds": [
+            "减益"
+        ],
+        "file": "avares://CurrencyWarsTool/Assets/equipment/减益星徽.png"
+    },
+    {
+        "name": "击破星徽",
+        "bonds": [
+            "击破"
+        ],
+        "file": "avares://CurrencyWarsTool/Assets/equipment/击破星徽.png"
+    },
+    {
+        "name": "列车同行星徽",
+        "bonds": [
+            "列车同行"
+        ],
+        "file": "avares://CurrencyWarsTool/Assets/equipment/列车同行星徽.png"
+    },
+    {
+        "name": "夜之半神星徽",
+        "bonds": [
+            "夜之半神"
+        ],
+        "file": "avares://CurrencyWarsTool/Assets/equipment/夜之半神星徽.png"
+    },
+    {
+        "name": "战技点星徽",
+        "bonds": [
+            "战技点"
+        ],
+        "file": "avares://CurrencyWarsTool/Assets/equipment/战技点星徽.png"
+    },
+    {
+        "name": "护盾星徽",
+        "bonds": [
+            "护盾"
+        ],
+        "file": "avares://CurrencyWarsTool/Assets/equipment/护盾星徽.png"
+    },
+    {
+        "name": "持续伤害星徽",
+        "bonds": [
+            "持续伤害"
+        ],
+        "file": "avares://CurrencyWarsTool/Assets/equipment/持续伤害星徽.png"
+    },
+    {
+        "name": "星间旅人星徽",
+        "bonds": [
+            "星间旅人"
+        ],
+        "file": "avares://CurrencyWarsTool/Assets/equipment/星间旅人星徽.png"
+    },
+    {
+        "name": "昼之半神星徽",
+        "bonds": [
+            "昼之半神"
+        ],
+        "file": "avares://CurrencyWarsTool/Assets/equipment/昼之半神星徽.png"
+    },
+    {
+        "name": "治疗星徽",
+        "bonds": [
+            "治疗"
+        ],
+        "file": "avares://CurrencyWarsTool/Assets/equipment/治疗星徽.png"
+    },
+    {
+        "name": "燃血星徽",
+        "bonds": [
+            "燃血"
+        ],
+        "file": "avares://CurrencyWarsTool/Assets/equipment/燃血星徽.png"
+    },
+    {
+        "name": "狼狩星徽",
+        "bonds": [
+            "狼狩"
+        ],
+        "file": "avares://CurrencyWarsTool/Assets/equipment/狼狩星徽.png"
+    },
+    {
+        "name": "盛会之星星徽",
+        "bonds": [
+            "盛会之星"
+        ],
+        "file": "avares://CurrencyWarsTool/Assets/equipment/盛会之星星徽.png"
+    },
+    {
+        "name": "群攻星徽",
+        "bonds": [
+            "群攻"
+        ],
+        "file": "avares://CurrencyWarsTool/Assets/equipment/群攻星徽.png"
+    },
+    {
+        "name": "能量星徽",
+        "bonds": [
+            "能量"
+        ],
+        "file": "avares://CurrencyWarsTool/Assets/equipment/能量星徽.png"
+    },
+    {
+        "name": "贝洛伯格星徽",
+        "bonds": [
+            "贝洛伯格"
+        ],
+        "file": "avares://CurrencyWarsTool/Assets/equipment/贝洛伯格星徽.png"
+    },
+    {
+        "name": "追击星徽",
+        "bonds": [
+            "追击"
+        ],
+        "file": "avares://CurrencyWarsTool/Assets/equipment/追击星徽.png"
+    },
+    {
+        "name": "量子同频星徽",
+        "bonds": [
+            "量子同频"
+        ],
+        "file": "avares://CurrencyWarsTool/Assets/equipment/量子同频星徽.png"
+    },
+    {
+        "name": "银河学者星徽",
+        "bonds": [
+            "银河学者"
+        ],
+        "file": "avares://CurrencyWarsTool/Assets/equipment/银河学者星徽.png"
+    }
+]

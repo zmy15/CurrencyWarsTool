@@ -1,0 +1,54 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:CurrencyWarsTool.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="900"
+        x:Class="CurrencyWarsTool.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/app.ico"
+        Title="CurrencyWarsTool"
+        Width="1400"
+        Height="900">
+    <Window.Background>
+        <ImageBrush Source="/Assets/background.png" Stretch="UniformToFill"/>
+    </Window.Background>
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+    <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center" LastChildFill="True">
+        <StackPanel DockPanel.Dock="Left" Margin="0,0,24,0" Width="200">
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Height="600">
+                <StackPanel x:Name="BondsPanel" Spacing="8"/>
+            </ScrollViewer>
+        </StackPanel>
+        <StackPanel DockPanel.Dock="Right" Margin="24,0,0,0" Width="200">
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Height="650">
+                <UniformGrid x:Name="EquipmentPanel" Columns="2"/>
+            </ScrollViewer>
+        </StackPanel>
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="24">
+        <TextBlock x:Name="BoardCount" FontSize="50" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+        <UniformGrid x:Name="TopRow" Columns="4" HorizontalAlignment="Center" Rows="1" ColumnSpacing="8" RowSpacing="8">
+            <Border Width="60" Height="60" Background="Transparent" BorderBrush="Black" BorderThickness="1" Tag="0" DragDrop.AllowDrop="True" DragDrop.DragOver="OnDragOver" DragDrop.Drop="OnDrop"/>
+            <Border Width="60" Height="60" Background="Transparent" BorderBrush="Black" BorderThickness="1" Tag="0" DragDrop.AllowDrop="True" DragDrop.DragOver="OnDragOver" DragDrop.Drop="OnDrop"/>
+            <Border Width="60" Height="60" Background="Transparent" BorderBrush="Black" BorderThickness="1" Tag="0" DragDrop.AllowDrop="True" DragDrop.DragOver="OnDragOver" DragDrop.Drop="OnDrop"/>
+            <Border Width="60" Height="60" Background="Transparent" BorderBrush="Black" BorderThickness="1" Tag="0" DragDrop.AllowDrop="True" DragDrop.DragOver="OnDragOver" DragDrop.Drop="OnDrop"/>
+        </UniformGrid>
+        <UniformGrid x:Name="BottomRow" Columns="9" HorizontalAlignment="Center" Rows="1" ColumnSpacing="8" RowSpacing="8">
+            <Border Width="60" Height="60" Background="Transparent" BorderBrush="Black" BorderThickness="1" Tag="1" DragDrop.AllowDrop="True" DragDrop.DragOver="OnDragOver" DragDrop.Drop="OnDrop"/>
+            <Border Width="60" Height="60" Background="Transparent" BorderBrush="Black" BorderThickness="1" Tag="1" DragDrop.AllowDrop="True" DragDrop.DragOver="OnDragOver" DragDrop.Drop="OnDrop"/>
+            <Border Width="60" Height="60" Background="Transparent" BorderBrush="Black" BorderThickness="1" Tag="1" DragDrop.AllowDrop="True" DragDrop.DragOver="OnDragOver" DragDrop.Drop="OnDrop"/>
+            <Border Width="60" Height="60" Background="Transparent" BorderBrush="Black" BorderThickness="1" Tag="1" DragDrop.AllowDrop="True" DragDrop.DragOver="OnDragOver" DragDrop.Drop="OnDrop"/>
+            <Border Width="60" Height="60" Background="Transparent" BorderBrush="Black" BorderThickness="1" Tag="1" DragDrop.AllowDrop="True" DragDrop.DragOver="OnDragOver" DragDrop.Drop="OnDrop"/>
+            <Border Width="60" Height="60" Background="Transparent" BorderBrush="Black" BorderThickness="1" Tag="1" DragDrop.AllowDrop="True" DragDrop.DragOver="OnDragOver" DragDrop.Drop="OnDrop"/>
+            <Border Width="60" Height="60" Background="Transparent" BorderBrush="Black" BorderThickness="1" Tag="1" DragDrop.AllowDrop="True" DragDrop.DragOver="OnDragOver" DragDrop.Drop="OnDrop"/>
+            <Border Width="60" Height="60" Background="Transparent" BorderBrush="Black" BorderThickness="1" Tag="1" DragDrop.AllowDrop="True" DragDrop.DragOver="OnDragOver" DragDrop.Drop="OnDrop"/>
+            <Border Width="60" Height="60" Background="Transparent" BorderBrush="Black" BorderThickness="1" Tag="1" DragDrop.AllowDrop="True" DragDrop.DragOver="OnDragOver" DragDrop.Drop="OnDrop"/>
+        </UniformGrid>
+        <StackPanel x:Name="ImagePanel" HorizontalAlignment="Center" Margin="0,12,0,0" Spacing="8"/>
+        </StackPanel>
+    </DockPanel>
+
+</Window>
