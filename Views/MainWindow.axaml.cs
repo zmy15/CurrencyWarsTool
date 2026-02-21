@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using CurrencyWarsTool.ViewModels;
+using CurrencyWarsTool.Infrastructure;
 
 namespace CurrencyWarsTool.Views
 {
@@ -1006,7 +1007,7 @@ namespace CurrencyWarsTool.Views
             var orderedEntries = bondCounts
                 .Select(entry => (entry.Key, entry.Value, Definition: _viewModel.BondDefinitions.GetValueOrDefault(entry.Key)))
                 .Where(entry => entry.Definition is not null)
-                .OrderByDescending(entry => entry.Definition!.activate?.Max() == 1)
+                .OrderBy(entry => GetBondSortGroup(entry.Definition!, entry.Value))
                 .ThenByDescending(entry => entry.Value)
                 .ThenBy(entry => entry.Key, StringComparer.OrdinalIgnoreCase);
 
@@ -1149,6 +1150,32 @@ namespace CurrencyWarsTool.Views
             return container;
         }
 
+
+        private static int GetBondSortGroup(BondDefinition definition, int count)
+        {
+            if (IsIndependentBond(definition.activate))
+            {
+                return 0;
+            }
+
+            return IsActivatedBond(definition.activate, count) ? 1 : 2;
+        }
+
+        private static bool IsIndependentBond(IReadOnlyList<int>? activateList)
+        {
+            return activateList is not null && activateList.Count == 1 && activateList[0] == 1;
+        }
+
+        private static bool IsActivatedBond(IReadOnlyList<int>? activateList, int count)
+        {
+            if (activateList is null || activateList.Count == 0)
+            {
+                return false;
+            }
+
+            return count >= activateList.Min();
+        }
+
         private static IBrush GetBondBackground(IReadOnlyList<int>? activateList, int count)
         {
             if (activateList is null || activateList.Count == 0)
@@ -1190,7 +1217,7 @@ namespace CurrencyWarsTool.Views
                 return new Bitmap(AssetLoader.Open(new Uri(assetPath)));
             }
 
-            var filePath = Path.Combine(AppContext.BaseDirectory, assetPath);
+            var filePath = Path.Combine(AppPaths.RootDirectory, assetPath);
             return File.Exists(filePath)
                 ? new Bitmap(filePath)
                 : new Bitmap(AssetLoader.Open(new Uri("avares://CurrencyWarsTool/Assets/avalonia-logo.ico")));

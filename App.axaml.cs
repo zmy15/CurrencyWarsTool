@@ -6,6 +6,7 @@ using Avalonia.Markup.Xaml;
 using CurrencyWarsTool.ViewModels;
 using CurrencyWarsTool.Views;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace CurrencyWarsTool
 {
@@ -20,25 +21,36 @@ namespace CurrencyWarsTool
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 
-                // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
                 DisableAvaloniaDataAnnotationValidation();
-                desktop.MainWindow = new MainWindow
+
+                var startupWindow = new StartupProgressWindow(() => ShowMainWindowAsync(desktop))
                 {
-                    DataContext = new MainWindowViewModel(),
+                    DataContext = new StartupProgressWindowViewModel()
                 };
+
+                desktop.MainWindow = startupWindow;
             }
 
             base.OnFrameworkInitializationCompleted();
         }
 
+        private static Task ShowMainWindowAsync(IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            var mainWindow = new MainWindow
+            {
+                DataContext = new MainWindowViewModel(),
+            };
+
+            desktop.MainWindow = mainWindow;
+            mainWindow.Show();
+            return Task.CompletedTask;
+        }
+
         private void DisableAvaloniaDataAnnotationValidation()
         {
-            // Get an array of plugins to remove
             var dataValidationPluginsToRemove =
                 BindingPlugins.DataValidators.OfType<DataAnnotationsValidationPlugin>().ToArray();
 
-            // remove each entry found
             foreach (var plugin in dataValidationPluginsToRemove)
             {
                 BindingPlugins.DataValidators.Remove(plugin);

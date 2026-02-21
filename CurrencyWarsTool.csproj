@@ -27,21 +27,23 @@
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.71" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.7" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="character.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Data\character.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="bonds.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Data\bonds.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="equipment.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Data\equipment.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="others.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Data\others.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

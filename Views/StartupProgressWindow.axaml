@@ -1,0 +1,22 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:CurrencyWarsTool.ViewModels"
+        x:Class="CurrencyWarsTool.Views.StartupProgressWindow"
+        x:DataType="vm:StartupProgressWindowViewModel"
+        Width="460"
+        Height="180"
+        CanResize="False"
+        WindowStartupLocation="CenterScreen"
+        Title="初始化角色数据"
+        mc:Ignorable="d">
+    <StackPanel Margin="20" Spacing="12">
+        <TextBlock Text="首次启动将检查并更新角色数据" FontSize="16" />
+        <ProgressBar Minimum="0"
+                     Maximum="100"
+                     Height="18"
+                     Value="{Binding ProgressValue}" />
+        <TextBlock Text="{Binding StatusText}" TextWrapping="Wrap" />
+    </StackPanel>
+</Window>
