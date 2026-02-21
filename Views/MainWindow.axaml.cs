@@ -1007,7 +1007,7 @@ namespace CurrencyWarsTool.Views
             var orderedEntries = bondCounts
                 .Select(entry => (entry.Key, entry.Value, Definition: _viewModel.BondDefinitions.GetValueOrDefault(entry.Key)))
                 .Where(entry => entry.Definition is not null)
-                .OrderByDescending(entry => entry.Definition!.activate?.Max() == 1)
+                .OrderBy(entry => GetBondSortCategory(entry.Definition!, entry.Value))
                 .ThenByDescending(entry => entry.Value)
                 .ThenBy(entry => entry.Key, StringComparer.OrdinalIgnoreCase);
 
@@ -1015,6 +1015,21 @@ namespace CurrencyWarsTool.Views
             {
                 _bondsPanel.Children.Add(CreateBondEntry(entry.Definition!, entry.Value));
             }
+        }
+        private static int GetBondSortCategory(BondDefinition definition, int count)
+        {
+            var activateList = definition.activate ?? [];
+            if (activateList.Count == 1 && activateList[0] == 1)
+            {
+                return 0;
+            }
+
+            if (activateList.Count > 0 && count >= activateList.Min())
+            {
+                return 1;
+            }
+
+            return 2;
         }
 
         // 羁绊数据由 ViewModel 统一加载。
