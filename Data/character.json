@@ -176,16 +176,6 @@
     "file": "Assets/character/海瑟音.png"
   },
   {
-    "name": "灵砂",
-    "cost": 4,
-    "bonds": [
-      "击破",
-      "狼狩"
-    ],
-    "position": 0,
-    "file": "Assets/character/灵砂.png"
-  },
-  {
     "name": "银狼",
     "cost": 4,
     "bonds": [
@@ -401,7 +391,8 @@
     "cost": 2,
     "bonds": [
       "星间旅人",
-      "群攻"
+      "群攻",
+      "能量"
     ],
     "position": 0,
     "file": "Assets/character/银枝.png"
@@ -446,6 +437,17 @@
     ],
     "position": 1,
     "file": "Assets/character/佩拉.png"
+  },
+  {
+    "name": "灵砂",
+    "cost": 2,
+    "bonds": [
+      "击破",
+      "治疗",
+      "狼狩"
+    ],
+    "position": 0,
+    "file": "Assets/character/灵砂.png"
   },
   {
     "name": "丹恒•腾荒",
@@ -601,7 +603,7 @@
       "列车同行",
       "护盾"
     ],
-    "position": 0,
+    "position": 1,
     "file": "Assets/character/三月七.png"
   },
   {
@@ -642,7 +644,7 @@
       "持续伤害",
       "银河学者"
     ],
-    "position": 1,
+    "position": 0,
     "file": "Assets/character/艾丝妲.png"
   },
   {

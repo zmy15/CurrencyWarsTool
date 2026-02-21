@@ -22,6 +22,9 @@ namespace CurrencyWarsTool.Views
         private const string FrontIconName = "前台";
         private const string BackIconName = "后台";
         private const string FrontBackIconName = "前后台";
+        private const string BronyaName = "布洛妮娅";
+        private const string BelobogBondName = "贝洛伯格";
+        private const string BurnbloodBondName = "燃血";
         // 底部面板容器
         private readonly StackPanel? _imagePanel;
         // 左侧羁绊统计容器
@@ -180,6 +183,7 @@ namespace CurrencyWarsTool.Views
             // 传递角色基础数据、装备数据与位置
             data.Set("image-source", image.Source);
             data.Set("dragged-image", image);
+            data.Set("image-name", GetNameFromTag(image.Tag));
             data.Set("image-position", GetPositionFromTag(image.Tag));
             data.Set("image-cost", GetCostFromTag(image.Tag));
             data.Set("image-base-bonds", GetBaseBondsFromTag(image.Tag));
@@ -300,7 +304,8 @@ namespace CurrencyWarsTool.Views
             var baseBonds = GetBaseBondsFromTag(sourceImage.Tag);
             var equipmentBonds = GetEquipmentBondsFromTag(sourceImage.Tag);
             var equipmentFiles = GetEquipmentFilesFromTag(sourceImage.Tag);
-            AddToCostRow(cost, CreatePanelItem(sourceImage.Source, position, cost, baseBonds, equipmentBonds, equipmentFiles));
+            var name = GetNameFromTag(sourceImage.Tag);
+            AddToCostRow(cost, CreatePanelItem(sourceImage.Source, name, position, cost, baseBonds, equipmentBonds, equipmentFiles));
             UpdateBondsSummary();
             UpdateBoardCount();
         }
@@ -369,24 +374,26 @@ namespace CurrencyWarsTool.Views
                 // 目标格子有角色时执行交换逻辑
                 if (sourceBorder is not null)
                 {
+                    var targetName = GetNameFromTag(targetImage.Tag);
                     var targetPosition = GetPositionFromTag(targetImage.Tag);
                     var targetCost = GetCostFromTag(targetImage.Tag);
                     var targetBaseBonds = GetBaseBondsFromTag(targetImage.Tag);
                     var targetEquipmentBonds = GetEquipmentBondsFromTag(targetImage.Tag);
                     var targetEquipment = GetEquipmentFilesFromTag(targetImage.Tag);
-                    sourceBorder.Child = CreateBoardContent(targetImage.Source, targetPosition, targetCost, targetBaseBonds, targetEquipmentBonds, targetEquipment);
+                    sourceBorder.Child = CreateBoardContent(targetImage.Source, targetName, targetPosition, targetCost, targetBaseBonds, targetEquipmentBonds, targetEquipment);
                     UpdateBorderForPlacement(sourceBorder, targetPosition, targetCost);
                     swappedToSource = true;
                 }
                 else if (sourcePanel is not null)
                 {
                     // 从下方面板拖到棋盘，目标角色回到下方
+                    var targetName = GetNameFromTag(targetImage.Tag);
                     var targetPosition = GetPositionFromTag(targetImage.Tag);
                     var targetCost = GetCostFromTag(targetImage.Tag);
                     var targetBaseBonds = GetBaseBondsFromTag(targetImage.Tag);
                     var targetEquipmentBonds = GetEquipmentBondsFromTag(targetImage.Tag);
                     var targetEquipment = GetEquipmentFilesFromTag(targetImage.Tag);
-                    AddToCostRow(targetCost, CreatePanelItem(targetImage.Source, targetPosition, targetCost, targetBaseBonds, targetEquipmentBonds, targetEquipment));
+                    AddToCostRow(targetCost, CreatePanelItem(targetImage.Source, targetName, targetPosition, targetCost, targetBaseBonds, targetEquipmentBonds, targetEquipment));
                 }
             }
 
@@ -412,12 +419,13 @@ namespace CurrencyWarsTool.Views
                 }
             }
 
+            var name = e.Data.Get("image-name") as string;
             var position = GetPositionFromTag(e.Data.Get("image-position"));
             var cost = GetCostFromTag(e.Data.Get("image-cost"));
             var baseBonds = GetBaseBondsFromTag(e.Data.Get("image-base-bonds"));
             var equipmentBonds = GetEquipmentBondsFromTag(e.Data.Get("image-equipment-bonds"));
             var equipmentFiles = GetEquipmentFilesFromTag(e.Data.Get("image-equipment"));
-            targetBorder.Child = CreateBoardContent(imageSource, position, cost, baseBonds, equipmentBonds, equipmentFiles);
+            targetBorder.Child = CreateBoardContent(imageSource, name, position, cost, baseBonds, equipmentBonds, equipmentFiles);
             UpdateBorderForPlacement(targetBorder, position, cost);
             UpdateBondsSummary();
             UpdateBoardCount();
@@ -462,20 +470,21 @@ namespace CurrencyWarsTool.Views
                 }
             }
 
+            var name = e.Data.Get("image-name") as string;
             var position = GetPositionFromTag(e.Data.Get("image-position"));
             var cost = GetCostFromTag(e.Data.Get("image-cost"));
             var baseBonds = GetBaseBondsFromTag(e.Data.Get("image-base-bonds"));
             var equipmentBonds = GetEquipmentBondsFromTag(e.Data.Get("image-equipment-bonds"));
             var equipmentFiles = GetEquipmentFilesFromTag(e.Data.Get("image-equipment"));
-            AddToCostRow(cost, CreatePanelItem(imageSource, position, cost, baseBonds, equipmentBonds, equipmentFiles));
+            AddToCostRow(cost, CreatePanelItem(imageSource, name, position, cost, baseBonds, equipmentBonds, equipmentFiles));
             UpdateBondsSummary();
             UpdateBoardCount();
         }
 
-        private Control CreateBoardContent(IImage source, int? position, int? cost, IReadOnlyList<string>? baseBonds, IReadOnlyList<string>? equipmentBonds, IReadOnlyList<string>? equipmentFiles)
+        private Control CreateBoardContent(IImage source, string? name, int? position, int? cost, IReadOnlyList<string>? baseBonds, IReadOnlyList<string>? equipmentBonds, IReadOnlyList<string>? equipmentFiles)
         {
             // 生成棋盘中的角色内容
-            var image = CreateCharacterImage(source, position, cost, baseBonds, equipmentBonds, equipmentFiles);
+            var image = CreateCharacterImage(source, name, position, cost, baseBonds, equipmentBonds, equipmentFiles);
             var imageContainer = CreateCharacterImageContainer(image, position);
             var equipmentPanel = new WrapPanel
             {
@@ -514,10 +523,10 @@ namespace CurrencyWarsTool.Views
             _boardCount.Text = $"{count}/13";
         }
 
-        private Border CreatePanelItem(IImage source, int? position = null, int? cost = null, IReadOnlyList<string>? baseBonds = null, IReadOnlyList<string>? equipmentBonds = null, IReadOnlyList<string>? equipmentFiles = null)
+        private Border CreatePanelItem(IImage source, string? name = null, int? position = null, int? cost = null, IReadOnlyList<string>? baseBonds = null, IReadOnlyList<string>? equipmentBonds = null, IReadOnlyList<string>? equipmentFiles = null)
         {
             // 生成下方面板中的角色内容
-            var image = CreateCharacterImage(source, position, cost, baseBonds, equipmentBonds, equipmentFiles);
+            var image = CreateCharacterImage(source, name, position, cost, baseBonds, equipmentBonds, equipmentFiles);
             var imageContainer = CreateCharacterImageContainer(image, position);
 
             var equipmentPanel = new WrapPanel
@@ -550,7 +559,7 @@ namespace CurrencyWarsTool.Views
                 Background = GetBrushForCost(cost),
                 Margin = new Thickness(0, 0, 12, 0),
                 Child = contentPanel,
-                Tag = new ImageMetadata(position, cost, baseBonds, equipmentBonds, equipmentFiles)
+                Tag = new ImageMetadata(name, position, cost, baseBonds, equipmentBonds, equipmentFiles)
             };
 
             panelItem.SetValue(DragDrop.AllowDropProperty, true);
@@ -581,7 +590,7 @@ namespace CurrencyWarsTool.Views
 
             foreach (var item in items)
             {
-                AddToCostRow(item.cost, CreatePanelItem(LoadImageSource(item.file), item.position, item.cost, item.bonds));
+                AddToCostRow(item.cost, CreatePanelItem(LoadImageSource(item.file), item.name, item.position, item.cost, item.bonds));
             }
         }
 
@@ -659,7 +668,7 @@ namespace CurrencyWarsTool.Views
             };
         }
 
-        private Image CreateCharacterImage(IImage source, int? position, int? cost, IReadOnlyList<string>? baseBonds, IReadOnlyList<string>? equipmentBonds, IReadOnlyList<string>? equipmentFiles)
+        private Image CreateCharacterImage(IImage source, string? name, int? position, int? cost, IReadOnlyList<string>? baseBonds, IReadOnlyList<string>? equipmentBonds, IReadOnlyList<string>? equipmentFiles)
         {
             var image = new Image
             {
@@ -669,7 +678,7 @@ namespace CurrencyWarsTool.Views
                 Stretch = Stretch.Uniform,
                 HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
                 VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
-                Tag = new ImageMetadata(position, cost, baseBonds, equipmentBonds, equipmentFiles)
+                Tag = new ImageMetadata(name, position, cost, baseBonds, equipmentBonds, equipmentFiles)
             };
 
             image.PointerPressed += OnDragStart;
@@ -719,6 +728,16 @@ namespace CurrencyWarsTool.Views
         private string? GetOtherFile(string name)
         {
             return _viewModel.OtherDefinitions.TryGetValue(name, out var item) ? item.file : null;
+        }
+
+        private static string? GetNameFromTag(object? tag)
+        {
+            return tag switch
+            {
+                ImageMetadata metadata => metadata.Name,
+                string name => name,
+                _ => null
+            };
         }
 
         private static int? GetPositionFromTag(object? tag)
@@ -872,7 +891,7 @@ namespace CurrencyWarsTool.Views
             if (isClearTool)
             {
                 // 拆装工具：清空装备列表
-                targetImage.Tag = new ImageMetadata(metadata.Position, metadata.Cost, metadata.BaseBonds, [], []);
+                targetImage.Tag = new ImageMetadata(metadata.Name, metadata.Position, metadata.Cost, metadata.BaseBonds, [], []);
                 boardEquipmentPanel?.Children.Clear();
                 return;
             }
@@ -903,7 +922,7 @@ namespace CurrencyWarsTool.Views
                 return;
             }
 
-            targetImage.Tag = new ImageMetadata(metadata.Position, metadata.Cost, metadata.BaseBonds, updatedEquipmentBonds, updatedEquipment);
+            targetImage.Tag = new ImageMetadata(metadata.Name, metadata.Position, metadata.Cost, metadata.BaseBonds, updatedEquipmentBonds, updatedEquipment);
             if (boardEquipmentPanel is not null && !string.IsNullOrWhiteSpace(equipmentFile) && updatedEquipment.Count <= 3)
             {
                 boardEquipmentPanel.Children.Add(CreateEquipmentBadge(equipmentFile));
@@ -932,8 +951,9 @@ namespace CurrencyWarsTool.Views
             return combined;
         }
 
-        private sealed class ImageMetadata(int? position, int? cost, IReadOnlyList<string>? baseBonds, IReadOnlyList<string>? equipmentBonds, IReadOnlyList<string>? equipmentFiles)
+        private sealed class ImageMetadata(string? name, int? position, int? cost, IReadOnlyList<string>? baseBonds, IReadOnlyList<string>? equipmentBonds, IReadOnlyList<string>? equipmentFiles)
         {
+            public string? Name { get; } = name;
             public int? Position { get; } = position;
             public int? Cost { get; } = cost;
             public IReadOnlyList<string>? BaseBonds { get; } = baseBonds;
@@ -972,6 +992,7 @@ namespace CurrencyWarsTool.Views
             }
 
             var bondCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            var bronyaBonds = new List<IReadOnlyList<string>>();
             foreach (var border in _boardBorders)
             {
                 var image = GetBoardImage(border);
@@ -986,15 +1007,34 @@ namespace CurrencyWarsTool.Views
                     continue;
                 }
 
-                foreach (var bond in bonds)
+                var name = GetNameFromTag(image.Tag);
+                if (string.Equals(name, BronyaName, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (string.IsNullOrWhiteSpace(bond))
-                    {
-                        continue;
-                    }
+                    bronyaBonds.Add(bonds);
+                    continue;
+                }
 
-                    bondCounts.TryGetValue(bond, out var count);
-                    bondCounts[bond] = count + 1;
+                AddBondCounts(bondCounts, bonds);
+            }
+
+            if (bronyaBonds.Count > 0)
+            {
+                bondCounts.TryGetValue(BelobogBondName, out var belobogCount);
+                bondCounts.TryGetValue(BurnbloodBondName, out var burnbloodCount);
+                var selectedBond = belobogCount >= burnbloodCount ? BelobogBondName : BurnbloodBondName;
+                var skippedBond = selectedBond == BelobogBondName ? BurnbloodBondName : BelobogBondName;
+
+                foreach (var bonds in bronyaBonds)
+                {
+                    foreach (var bond in bonds)
+                    {
+                        if (string.Equals(bond, skippedBond, StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
+
+                        AddBondCounts(bondCounts, [bond]);
+                    }
                 }
             }
 
@@ -1030,6 +1070,20 @@ namespace CurrencyWarsTool.Views
             }
 
             return 2;
+        }
+
+        private static void AddBondCounts(Dictionary<string, int> bondCounts, IEnumerable<string> bonds)
+        {
+            foreach (var bond in bonds)
+            {
+                if (string.IsNullOrWhiteSpace(bond))
+                {
+                    continue;
+                }
+
+                bondCounts.TryGetValue(bond, out var count);
+                bondCounts[bond] = count + 1;
+            }
         }
 
         // 羁绊数据由 ViewModel 统一加载。
