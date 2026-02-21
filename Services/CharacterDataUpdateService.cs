@@ -1,3 +1,4 @@
+using CurrencyWarsTool.Infrastructure;
 using HtmlAgilityPack;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
@@ -5,22 +6,21 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Net;
-
-using CurrencyWarsTool.Infrastructure;
 
 namespace CurrencyWarsTool.Services;
 
 public sealed class CharacterDataUpdateService
 {
     private static readonly HttpClient HttpClient = new();
-    private const string CharacterListUrl = "https://act-api-takumi-static.mihoyo.com/common/blackboard/sr_wiki/v1/home/content/list?app_sn=sr_wiki&channel_id=209";
-    private const string CharacterInfoUrlTemplate = "https://act-api-takumi-static.mihoyo.com/common/blackboard/sr_wiki/v1/content/info?app_sn=sr_wiki&content_id={0}";
+
+    private const string BaseUrl = "https://wiki.biligame.com";
+    private const string CharacterListUrl = "https://wiki.biligame.com/sr/%E8%A7%92%E8%89%B2%E4%B8%80%E8%A7%88%EF%BC%88%E8%B4%A7%E5%B8%81%EF%BC%89";
 
     public async Task UpdateAsync(IProgress<DownloadProgress>? progress = null, CancellationToken cancellationToken = default)
     {
@@ -30,94 +30,125 @@ public sealed class CharacterDataUpdateService
 
         progress?.Report(new DownloadProgress(0, "正在读取角色列表..."));
 
-        using var listResponse = await HttpClient.GetAsync(CharacterListUrl, cancellationToken);
-        listResponse.EnsureSuccessStatusCode();
-        await using var listStream = await listResponse.Content.ReadAsStreamAsync(cancellationToken);
-        using var listJson = await JsonDocument.ParseAsync(listStream, cancellationToken: cancellationToken);
+        var html = await HttpClient.GetStringAsync(CharacterListUrl, cancellationToken);
+        var document = new HtmlDocument();
+        document.LoadHtml(html);
 
-        var items = listJson.RootElement
-            .GetProperty("data")
-            .GetProperty("list")[0]
-            .GetProperty("children")[0]
-            .GetProperty("list");
+        var rows = document.DocumentNode.SelectNodes("//tr[contains(@class,'divsort')]") ?? [];
+        var total = rows.Count;
 
-        var characters = new List<CharacterRecord>(items.GetArrayLength());
-        var total = items.GetArrayLength();
-        var index = 0;
-        var canonicalNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var result = new List<CharacterRecord>(total);
+        var downloaded = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var item in items.EnumerateArray())
+        for (var i = 0; i < rows.Count; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            index++;
-            var name = item.GetProperty("title").GetString() ?? string.Empty;
-            var canonicalName = GetCanonicalCharacterName(name);
-            if (!canonicalNames.Add(canonicalName))
+
+            var row = rows[i];
+            progress?.Report(new DownloadProgress(CalculatePercent(i, total), $"正在处理角色 ({i + 1}/{total})"));
+
+            var imgTag = row.SelectSingleNode(".//img");
+            if (imgTag is null)
             {
-                progress?.Report(new DownloadProgress(CalculatePercent(index, total), $"跳过重复角色：{name}"));
                 continue;
             }
 
-            progress?.Report(new DownloadProgress(CalculatePercent(index - 1, total), $"正在处理：{name} ({index}/{total})"));
-
-            var ext = item.GetProperty("ext").GetString() ?? "{}";
-            var contentId = item.GetProperty("content_id").GetInt32();
-            var iconUrl = item.GetProperty("icon").GetString() ?? string.Empty;
-
-            var detailUrl = string.Format(CultureInfo.InvariantCulture, CharacterInfoUrlTemplate, contentId);
-            using var detailResponse = await HttpClient.GetAsync(detailUrl, cancellationToken);
-            detailResponse.EnsureSuccessStatusCode();
-            await using var detailStream = await detailResponse.Content.ReadAsStreamAsync(cancellationToken);
-            using var detailJson = await JsonDocument.ParseAsync(detailStream, cancellationToken: cancellationToken);
-
-            var html = detailJson.RootElement
-                .GetProperty("data")
-                .GetProperty("content")
-                .GetProperty("contents")[0]
-                .GetProperty("text")
-                .GetString();
-
-            var positionCost = ExtractPositionCost(ext);
-            var character = new CharacterRecord
+            var nameRaw = imgTag.GetAttributeValue("alt", string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(nameRaw))
             {
-                name = canonicalName,
-                file = $"Assets/character/{canonicalName}.png",
-                cost = positionCost.cost,
-                position = positionCost.position,
-                bonds = ExtractBonds(html)
-            };
-            characters.Add(character);
-
-            var localFileName = Path.Combine(characterDir, $"{canonicalName}.png");
-            if (!File.Exists(localFileName))
-            {
-                await DownloadAndResizeImageAsync(iconUrl, localFileName, cancellationToken);
+                continue;
             }
 
-            progress?.Report(new DownloadProgress(CalculatePercent(index, total), $"已完成：{name} ({index}/{total})"));
+            var name = Path.GetFileNameWithoutExtension(nameRaw);
+            if (!downloaded.Add(name))
+            {
+                continue;
+            }
+
+            var cost = ParseIntOrDefault(row.GetAttributeValue("data-param6", "0"), 0);
+            var bonds = ParseBonds(row.GetAttributeValue("data-param5", string.Empty));
+            var position = ParsePosition(row.GetAttributeValue("data-param2", string.Empty));
+
+            var imgUrlRaw = imgTag.GetAttributeValue("src", string.Empty);
+            if (string.IsNullOrWhiteSpace(imgUrlRaw))
+            {
+                continue;
+            }
+
+            var imgUrl = new Uri(new Uri(BaseUrl), imgUrlRaw).ToString();
+            var localFilePath = Path.Combine(characterDir, $"{name}.png");
+
+            if (!File.Exists(localFilePath))
+            {
+                try
+                {
+                    await DownloadAndResizeImageAsync(imgUrl, localFilePath, cancellationToken);
+                }
+                catch
+                {
+                    // 下载失败时保持与原脚本思路一致：跳过该角色
+                    continue;
+                }
+            }
+
+            result.Add(new CharacterRecord
+            {
+                name = name,
+                cost = cost,
+                bonds = bonds,
+                position = position,
+                file = $"Assets/character/{name}.png"
+            });
+
+            progress?.Report(new DownloadProgress(CalculatePercent(i + 1, total), $"已处理：{name} ({i + 1}/{total})"));
         }
 
-        var jsonPath = AppPaths.CharacterJsonPath;
-        var jsonOptions = new JsonSerializerOptions
+        var json = JsonSerializer.Serialize(result, new JsonSerializerOptions
         {
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             WriteIndented = true
-        };
+        });
 
-        var json = JsonSerializer.Serialize(characters, jsonOptions);
-        await File.WriteAllTextAsync(jsonPath, json, cancellationToken);
-
+        await File.WriteAllTextAsync(AppPaths.CharacterJsonPath, json, cancellationToken);
         progress?.Report(new DownloadProgress(100, "角色数据更新完成"));
+    }
+
+    private static int ParsePosition(string raw)
+    {
+        return raw.Trim() switch
+        {
+            "前" => 0,
+            "后" => 1,
+            "前后" => 2,
+            _ => 0
+        };
+    }
+
+    private static int ParseIntOrDefault(string raw, int defaultValue)
+    {
+        return int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed)
+            ? parsed
+            : defaultValue;
+    }
+
+    private static List<string> ParseBonds(string raw)
+    {
+        return raw
+            .Replace("，", ",", StringComparison.Ordinal)
+            .Replace(" ", ",", StringComparison.Ordinal)
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(static bond => !string.IsNullOrWhiteSpace(bond))
+            .ToList();
     }
 
     private static async Task DownloadAndResizeImageAsync(string imageUrl, string localPath, CancellationToken cancellationToken)
     {
-        using var imageResponse = await HttpClient.GetAsync(imageUrl, cancellationToken);
-        imageResponse.EnsureSuccessStatusCode();
+        using var response = await HttpClient.GetAsync(imageUrl, cancellationToken);
+        response.EnsureSuccessStatusCode();
 
-        await using var networkStream = await imageResponse.Content.ReadAsStreamAsync(cancellationToken);
-        using var image = await Image.LoadAsync(networkStream, cancellationToken);
-        image.Mutate(context => context.Resize(new ResizeOptions
+        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+        using var image = await Image.LoadAsync(stream, cancellationToken);
+        image.Mutate(ctx => ctx.Resize(new ResizeOptions
         {
             Mode = ResizeMode.Max,
             Size = new Size(64, 64)
@@ -136,144 +167,12 @@ public sealed class CharacterDataUpdateService
         return Math.Clamp((int)Math.Round(current * 100d / total), 0, 100);
     }
 
-    private static List<string> ExtractBonds(string? htmlText)
-    {
-        if (string.IsNullOrWhiteSpace(htmlText))
-        {
-            return [];
-        }
-
-        var doc = new HtmlDocument();
-        doc.LoadHtml(htmlText);
-
-        var container = doc.DocumentNode.SelectSingleNode("//div[contains(@class, 'obc-tmpl')]");
-        var encodedData = container?.GetAttributeValue("data-data", string.Empty);
-        if (string.IsNullOrWhiteSpace(encodedData))
-        {
-            return [];
-        }
-
-        var decoded = WebUtility.UrlDecode(encodedData);
-        if (string.IsNullOrWhiteSpace(decoded))
-        {
-            return [];
-        }
-
-        using var blocksJson = JsonDocument.Parse(decoded);
-        foreach (var block in blocksJson.RootElement.EnumerateArray())
-        {
-            if (!block.TryGetProperty("tmplKey", out var tmplKey) || tmplKey.GetString() != "material")
-            {
-                continue;
-            }
-
-            if (!block.TryGetProperty("data", out var data) || !data.TryGetProperty("desc", out var descElement))
-            {
-                return [];
-            }
-
-            var descHtml = descElement.GetString();
-            if (string.IsNullOrWhiteSpace(descHtml))
-            {
-                return [];
-            }
-
-            var descDoc = new HtmlDocument();
-            descDoc.LoadHtml(descHtml);
-            var links = descDoc.DocumentNode.SelectNodes("//a");
-
-            var bonds = new List<string>();
-            if (links is null)
-            {
-                return bonds;
-            }
-
-            foreach (var link in links)
-            {
-                var text = link.InnerText?.Trim();
-                if (!string.IsNullOrWhiteSpace(text))
-                {
-                    bonds.Add(text);
-                }
-            }
-
-            return bonds;
-        }
-
-        return [];
-    }
-
-    private static (int cost, int? position) ExtractPositionCost(string rawText)
-    {
-        using var outer = JsonDocument.Parse(rawText);
-        var textField = outer.RootElement.GetProperty("c_210").GetProperty("filter").GetProperty("text").GetString() ?? "[]";
-        using var itemsJson = JsonDocument.Parse(textField);
-
-        var cost = 0;
-        int? position = null;
-
-        foreach (var item in itemsJson.RootElement.EnumerateArray())
-        {
-            var text = item.GetString();
-            if (string.IsNullOrWhiteSpace(text) || !text.Contains('/'))
-            {
-                continue;
-            }
-
-            var parts = text.Split('/', 2, StringSplitOptions.TrimEntries);
-            if (parts.Length != 2)
-            {
-                continue;
-            }
-
-            var key = parts[0];
-            var value = parts[1];
-
-            if (key == "费用" && int.TryParse(value, out var parsedCost))
-            {
-                cost = parsedCost;
-            }
-            else if (key == "站位")
-            {
-                position = value switch
-                {
-                    "前台" => 0,
-                    "后台" => 1,
-                    "前后台" => 2,
-                    _ => null
-                };
-            }
-        }
-
-        return (cost, position);
-    }
-
-
-    private static string GetCanonicalCharacterName(string name)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            return name;
-        }
-
-        if (name.Contains("开拓者", StringComparison.Ordinal))
-        {
-            return name
-                .Replace("（男）", string.Empty, StringComparison.Ordinal)
-                .Replace("（女）", string.Empty, StringComparison.Ordinal)
-                .Replace("(男)", string.Empty, StringComparison.Ordinal)
-                .Replace("(女)", string.Empty, StringComparison.Ordinal)
-                .Trim();
-        }
-
-        return name;
-    }
     private sealed class CharacterRecord
     {
         public string name { get; set; } = string.Empty;
         public int cost { get; set; }
         public List<string> bonds { get; set; } = [];
-        public int? position { get; set; }
+        public int position { get; set; }
         public string file { get; set; } = string.Empty;
     }
 }
