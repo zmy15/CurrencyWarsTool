@@ -95,15 +95,10 @@ namespace CurrencyWarsTool.ViewModels
 
             try
             {
-                // 直接反序列化字节，兼容 UTF-8 BOM。
-                var bytes = File.ReadAllBytes(path);
-                return JsonSerializer.Deserialize<T>(bytes);
+                var json = File.ReadAllText(path);
+                return JsonSerializer.Deserialize<T>(json);
             }
             catch (JsonException)
-            {
-                return default;
-            }
-            catch (IOException)
             {
                 return default;
             }
