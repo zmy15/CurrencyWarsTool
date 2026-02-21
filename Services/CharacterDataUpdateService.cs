@@ -1,4 +1,4 @@
-using CurrencyWarsTool.Infrastructure;
+﻿using CurrencyWarsTool.Infrastructure;
 using HtmlAgilityPack;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
@@ -34,7 +34,14 @@ public sealed class CharacterDataUpdateService
         var document = new HtmlDocument();
         document.LoadHtml(html);
 
-        var rows = document.DocumentNode.SelectNodes("//tr[contains(@class,'divsort')]") ?? [];
+        var rows = document.DocumentNode.SelectNodes("//tr[contains(@class,'divsort')]");
+        if (rows == null || rows.Count == 0)
+        {
+            await File.WriteAllTextAsync(AppPaths.CharacterJsonPath, "[]", cancellationToken);
+            progress?.Report(new DownloadProgress(100, "角色数据更新完成"));
+            return;
+        }
+
         var total = rows.Count;
 
         var result = new List<CharacterRecord>(total);
