@@ -1,0 +1,23 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:CurrencyWarsTool.ViewModels"
+        x:Class="CurrencyWarsTool.Views.StartupUpdateWindow"
+        x:DataType="vm:StartupUpdateViewModel"
+        Width="460"
+        Height="160"
+        CanResize="False"
+        WindowStartupLocation="CenterScreen"
+        ShowInTaskbar="True"
+        Title="正在更新角色数据">
+    <Design.DataContext>
+        <vm:StartupUpdateViewModel />
+    </Design.DataContext>
+
+    <StackPanel Margin="16" Spacing="12">
+        <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap" FontSize="14"/>
+        <ProgressBar Minimum="0" Maximum="100" Value="{Binding ProgressValue}" Height="20"/>
+        <TextBlock Text="{Binding ProgressValue, StringFormat='进度：{0:0.0}%'}" HorizontalAlignment="Right"/>
+    </StackPanel>
+</Window>

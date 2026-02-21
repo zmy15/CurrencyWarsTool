@@ -3,9 +3,12 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using CurrencyWarsTool.Services;
 using CurrencyWarsTool.ViewModels;
 using CurrencyWarsTool.Views;
+using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace CurrencyWarsTool
 {
@@ -20,25 +23,51 @@ namespace CurrencyWarsTool
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 
-                // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
                 DisableAvaloniaDataAnnotationValidation();
-                desktop.MainWindow = new MainWindow
-                {
-                    DataContext = new MainWindowViewModel(),
-                };
+                _ = RunStartupUpdateAsync(desktop);
             }
 
             base.OnFrameworkInitializationCompleted();
         }
 
+        private async Task RunStartupUpdateAsync(IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            var startupVm = new StartupUpdateViewModel();
+            var startupWindow = new StartupUpdateWindow
+            {
+                DataContext = startupVm
+            };
+
+            desktop.MainWindow = startupWindow;
+            startupWindow.Show();
+
+            try
+            {
+                var updater = new CharacterDataUpdateService();
+                var progress = new Progress<UpdateProgressInfo>(info => startupVm.Report(info.Percentage, info.Message));
+                await updater.UpdateAsync(progress);
+            }
+            catch (Exception ex)
+            {
+                startupVm.SetError($"更新失败：{ex.Message}");
+                await Task.Delay(2000);
+            }
+
+            var mainWindow = new MainWindow
+            {
+                DataContext = new MainWindowViewModel(),
+            };
+
+            desktop.MainWindow = mainWindow;
+            mainWindow.Show();
+            startupWindow.Close();
+        }
+
         private void DisableAvaloniaDataAnnotationValidation()
         {
-            // Get an array of plugins to remove
             var dataValidationPluginsToRemove =
                 BindingPlugins.DataValidators.OfType<DataAnnotationsValidationPlugin>().ToArray();
 
-            // remove each entry found
             foreach (var plugin in dataValidationPluginsToRemove)
             {
                 BindingPlugins.DataValidators.Remove(plugin);
