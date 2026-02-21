@@ -26,6 +26,7 @@ public sealed class CharacterDataUpdateService
     {
         var characterDir = AppPaths.CharacterAssetsDirectory;
         Directory.CreateDirectory(characterDir);
+        Directory.CreateDirectory(AppPaths.DataDirectory);
 
         progress?.Report(new DownloadProgress(0, "正在读取角色列表..."));
 
@@ -43,12 +44,20 @@ public sealed class CharacterDataUpdateService
         var characters = new List<CharacterRecord>(items.GetArrayLength());
         var total = items.GetArrayLength();
         var index = 0;
+        var canonicalNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var item in items.EnumerateArray())
         {
             cancellationToken.ThrowIfCancellationRequested();
             index++;
             var name = item.GetProperty("title").GetString() ?? string.Empty;
+            var canonicalName = GetCanonicalCharacterName(name);
+            if (!canonicalNames.Add(canonicalName))
+            {
+                progress?.Report(new DownloadProgress(CalculatePercent(index, total), $"跳过重复角色：{name}"));
+                continue;
+            }
+
             progress?.Report(new DownloadProgress(CalculatePercent(index - 1, total), $"正在处理：{name} ({index}/{total})"));
 
             var ext = item.GetProperty("ext").GetString() ?? "{}";
@@ -71,15 +80,15 @@ public sealed class CharacterDataUpdateService
             var positionCost = ExtractPositionCost(ext);
             var character = new CharacterRecord
             {
-                name = name,
-                file = $"Assets/character/{name}.png",
+                name = canonicalName,
+                file = $"Assets/character/{canonicalName}.png",
                 cost = positionCost.cost,
                 position = positionCost.position,
                 bonds = ExtractBonds(html)
             };
             characters.Add(character);
 
-            var localFileName = Path.Combine(characterDir, $"{name}.png");
+            var localFileName = Path.Combine(characterDir, $"{canonicalName}.png");
             if (!File.Exists(localFileName))
             {
                 await DownloadAndResizeImageAsync(iconUrl, localFileName, cancellationToken);
@@ -239,6 +248,26 @@ public sealed class CharacterDataUpdateService
         return (cost, position);
     }
 
+
+    private static string GetCanonicalCharacterName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return name;
+        }
+
+        if (name.Contains("开拓者", StringComparison.Ordinal))
+        {
+            return name
+                .Replace("（男）", string.Empty, StringComparison.Ordinal)
+                .Replace("（女）", string.Empty, StringComparison.Ordinal)
+                .Replace("(男)", string.Empty, StringComparison.Ordinal)
+                .Replace("(女)", string.Empty, StringComparison.Ordinal)
+                .Trim();
+        }
+
+        return name;
+    }
     private sealed class CharacterRecord
     {
         public string name { get; set; } = string.Empty;

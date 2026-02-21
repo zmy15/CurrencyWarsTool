@@ -19,9 +19,6 @@ namespace CurrencyWarsTool.Views
     {
         // 拆装工具图标路径
         private const string ClearEquipmentToolName = "精密拆装扳手";
-        private const string FrontIconName = "前台";
-        private const string BackIconName = "后台";
-        private const string FrontBackIconName = "前后台";
         // 底部面板容器
         private readonly StackPanel? _imagePanel;
         // 左侧羁绊统计容器
@@ -476,7 +473,7 @@ namespace CurrencyWarsTool.Views
         {
             // 生成棋盘中的角色内容
             var image = CreateCharacterImage(source, position, cost, baseBonds, equipmentBonds, equipmentFiles);
-            var imageContainer = CreateCharacterImageContainer(image, position);
+            var imageContainer = CreateCharacterImageContainer(image);
             var equipmentPanel = new WrapPanel
             {
                 HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center
@@ -518,7 +515,7 @@ namespace CurrencyWarsTool.Views
         {
             // 生成下方面板中的角色内容
             var image = CreateCharacterImage(source, position, cost, baseBonds, equipmentBonds, equipmentFiles);
-            var imageContainer = CreateCharacterImageContainer(image, position);
+            var imageContainer = CreateCharacterImageContainer(image);
 
             var equipmentPanel = new WrapPanel
             {
@@ -676,7 +673,7 @@ namespace CurrencyWarsTool.Views
             return image;
         }
 
-        private Control CreateCharacterImageContainer(Image image, int? position)
+        private Control CreateCharacterImageContainer(Image image)
         {
             var container = new Grid
             {
@@ -686,34 +683,7 @@ namespace CurrencyWarsTool.Views
 
             container.Children.Add(image);
 
-            var positionFile = GetPositionIconFile(position);
-            if (!string.IsNullOrWhiteSpace(positionFile))
-            {
-                container.Children.Add(new Image
-                {
-                    Source = LoadImageSource(positionFile),
-                    Width = 20,
-                    Height = 20,
-                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
-                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top,
-                    IsHitTestVisible = false
-                });
-            }
-
             return container;
-        }
-
-        private string? GetPositionIconFile(int? position)
-        {
-            var iconName = position switch
-            {
-                0 => FrontIconName,
-                1 => BackIconName,
-                2 => FrontBackIconName,
-                _ => null
-            };
-
-            return iconName is null ? null : GetOtherFile(iconName);
         }
 
         private string? GetOtherFile(string name)

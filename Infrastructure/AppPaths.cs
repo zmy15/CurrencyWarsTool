@@ -7,10 +7,11 @@ public static class AppPaths
 {
     public static string RootDirectory { get; } = ResolveRootDirectory();
 
-    public static string CharacterJsonPath => Path.Combine(RootDirectory, "character.json");
-    public static string BondsJsonPath => Path.Combine(RootDirectory, "bonds.json");
-    public static string EquipmentJsonPath => Path.Combine(RootDirectory, "equipment.json");
-    public static string OthersJsonPath => Path.Combine(RootDirectory, "others.json");
+    public static string DataDirectory => Path.Combine(RootDirectory, "Data");
+    public static string CharacterJsonPath => Path.Combine(DataDirectory, "character.json");
+    public static string BondsJsonPath => Path.Combine(DataDirectory, "bonds.json");
+    public static string EquipmentJsonPath => Path.Combine(DataDirectory, "equipment.json");
+    public static string OthersJsonPath => Path.Combine(DataDirectory, "others.json");
     public static string CharacterAssetsDirectory => Path.Combine(RootDirectory, "Assets", "character");
 
     private static string ResolveRootDirectory()
