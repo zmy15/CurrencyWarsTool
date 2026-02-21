@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using CurrencyWarsTool.ViewModels;
+using CurrencyWarsTool.Infrastructure;
 
 namespace CurrencyWarsTool.Views
 {
@@ -1190,7 +1191,7 @@ namespace CurrencyWarsTool.Views
                 return new Bitmap(AssetLoader.Open(new Uri(assetPath)));
             }
 
-            var filePath = Path.Combine(AppContext.BaseDirectory, assetPath);
+            var filePath = Path.Combine(AppPaths.RootDirectory, assetPath);
             return File.Exists(filePath)
                 ? new Bitmap(filePath)
                 : new Bitmap(AssetLoader.Open(new Uri("avares://CurrencyWarsTool/Assets/avalonia-logo.ico")));

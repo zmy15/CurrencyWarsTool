@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using CurrencyWarsTool.Infrastructure;
 
 namespace CurrencyWarsTool.ViewModels
 {
@@ -32,7 +33,7 @@ namespace CurrencyWarsTool.ViewModels
         private void LoadBondDefinitions()
         {
             _bondDefinitions.Clear();
-            var bondsPath = Path.Combine(AppContext.BaseDirectory, "bonds.json");
+            var bondsPath = AppPaths.BondsJsonPath;
             var items = ReadJsonFile<List<BondDefinition>>(bondsPath) ?? [];
             foreach (var bond in items)
             {
@@ -50,7 +51,7 @@ namespace CurrencyWarsTool.ViewModels
         /// </summary>
         private void LoadCharacterItems()
         {
-            var characterPath = Path.Combine(AppContext.BaseDirectory, "character.json");
+            var characterPath = AppPaths.CharacterJsonPath;
             CharacterItems = ReadJsonFile<List<CharacterItem>>(characterPath) ?? [];
         }
 
@@ -59,7 +60,7 @@ namespace CurrencyWarsTool.ViewModels
         /// </summary>
         private void LoadEquipmentItems()
         {
-            var equipmentPath = Path.Combine(AppContext.BaseDirectory, "equipment.json");
+            var equipmentPath = AppPaths.EquipmentJsonPath;
             EquipmentItems = ReadJsonFile<List<EquipmentItem>>(equipmentPath) ?? [];
         }
 
@@ -69,7 +70,7 @@ namespace CurrencyWarsTool.ViewModels
         private void LoadOtherItems()
         {
             _otherDefinitions.Clear();
-            var othersPath = Path.Combine(AppContext.BaseDirectory, "others.json");
+            var othersPath = AppPaths.OthersJsonPath;
             var items = ReadJsonFile<List<OtherItem>>(othersPath) ?? [];
             foreach (var item in items)
             {

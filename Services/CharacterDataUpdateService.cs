@@ -12,6 +12,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Net;
 
+using CurrencyWarsTool.Infrastructure;
+
 namespace CurrencyWarsTool.Services;
 
 public sealed class CharacterDataUpdateService
@@ -22,7 +24,7 @@ public sealed class CharacterDataUpdateService
 
     public async Task UpdateAsync(IProgress<DownloadProgress>? progress = null, CancellationToken cancellationToken = default)
     {
-        var characterDir = Path.Combine(AppContext.BaseDirectory, "Assets", "character");
+        var characterDir = AppPaths.CharacterAssetsDirectory;
         Directory.CreateDirectory(characterDir);
 
         progress?.Report(new DownloadProgress(0, "正在读取角色列表..."));
@@ -70,7 +72,7 @@ public sealed class CharacterDataUpdateService
             var character = new CharacterRecord
             {
                 name = name,
-                file = $"avares://CurrencyWarsTool/Assets/character/{name}.png",
+                file = $"Assets/character/{name}.png",
                 cost = positionCost.cost,
                 position = positionCost.position,
                 bonds = ExtractBonds(html)
@@ -86,7 +88,7 @@ public sealed class CharacterDataUpdateService
             progress?.Report(new DownloadProgress(CalculatePercent(index, total), $"已完成：{name} ({index}/{total})"));
         }
 
-        var jsonPath = Path.Combine(AppContext.BaseDirectory, "character.json");
+        var jsonPath = AppPaths.CharacterJsonPath;
         var jsonOptions = new JsonSerializerOptions
         {
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
