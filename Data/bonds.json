@@ -91,7 +91,7 @@
 	},
 	{
 		"name":"巡海游侠",
-		"activate":[1,2,3],
+		"activate":[1,2,3,4],
 		"file":"avares://CurrencyWarsTool/Assets/bonds/巡海游侠.png"
 	},
 	{
@@ -143,5 +143,15 @@
 		"name":"星间旅人",
 		"activate":[1,2,3,4,5,6,7],
 		"file":"avares://CurrencyWarsTool/Assets/bonds/星间旅人.png"
+	},
+	{
+		"name":"头号玩家",
+		"activate":[1],
+		"file":"avares://CurrencyWarsTool/Assets/bonds/头号玩家.png"
+	},
+	{
+		"name":"欢愉",
+		"activate":[3,4,5,7],
+		"file":"avares://CurrencyWarsTool/Assets/bonds/头号玩家.png"
 	}
 ]

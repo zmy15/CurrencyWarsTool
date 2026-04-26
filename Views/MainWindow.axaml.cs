@@ -1,17 +1,18 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Documents;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using CurrencyWarsTool.Infrastructure;
+using CurrencyWarsTool.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.IO;
 using System.Linq;
-using CurrencyWarsTool.ViewModels;
-using CurrencyWarsTool.Infrastructure;
 
 namespace CurrencyWarsTool.Views
 {
@@ -25,6 +26,10 @@ namespace CurrencyWarsTool.Views
         private const string BronyaName = "布洛妮娅";
         private const string BelobogBondName = "贝洛伯格";
         private const string BurnbloodBondName = "燃血";
+        private const string JoyTapeName = "欢愉卡带";
+        private const string StellarHunterCassetteName = "星核猎手卡带";
+        private const string JoyTapeFile = "avares://CurrencyWarsTool/Assets/equipment/欢愉卡带.png";
+        private const string StellarHunterCassetteFile = "avares://CurrencyWarsTool/Assets/equipment/星核猎手卡带.png";
         // 底部面板容器
         private readonly StackPanel? _imagePanel;
         // 左侧羁绊统计容器
@@ -160,6 +165,7 @@ namespace CurrencyWarsTool.Views
             data.Set("equipment-bonds", metadata.Bonds);
             data.Set("equipment-file", metadata.File);
             data.Set("equipment-clear", metadata.IsClearTool);
+            data.Set("equipment-name", metadata.IsClearTool ? ClearEquipmentToolName : Path.GetFileNameWithoutExtension(metadata.File));
             await DragDrop.DoDragDrop(e, data, DragDropEffects.Copy);
             e.Handled = true;
         }
@@ -319,8 +325,9 @@ namespace CurrencyWarsTool.Views
                 if (e.Data.Get("equipment-bonds") is IReadOnlyList<string> bonds)
                 {
                     var equipmentFile = e.Data.Get("equipment-file") as string;
+                    var equipmentName = e.Data.Get("equipment-name") as string;
                     var isClearTool = e.Data.Get("equipment-clear") as bool? == true;
-                    AddEquipmentBonds(border, targetImage, bonds, equipmentFile, isClearTool);
+                    AddEquipmentBonds(border, targetImage, bonds, equipmentFile, equipmentName, isClearTool);
                     UpdateBondsSummary();
                 }
 
@@ -363,6 +370,42 @@ namespace CurrencyWarsTool.Views
                 return;
             }
 
+            var dragName = e.Data.Get("image-name") as string;
+            // 获取目标格子位置以做受限角色放置判断
+            var targetRow = GetPositionFromTag(targetBorder.Tag);
+
+            // 开拓者•欢愉不能放前台，开拓者•记忆不能放后台
+            if (dragName == "开拓者•欢愉" && targetRow == 0) // 0 表示前台
+            {
+                return;
+            }
+            if (dragName == "开拓者•记忆" && targetRow == 1) // 1 表示后台
+            {
+                return;
+            }
+
+            // 限制场上只能存在一个开拓者（欢愉或记忆）
+            if (dragName == "开拓者•欢愉" || dragName == "开拓者•记忆")
+            {
+                var existingTrailblazerBorder = _boardBorders.FirstOrDefault(b =>
+                {
+                    var img = GetBoardImage(b);
+                    var imgName = GetNameFromTag(img?.Tag);
+                    return imgName == "开拓者•欢愉" || imgName == "开拓者•记忆";
+                });
+
+                if (existingTrailblazerBorder != null && existingTrailblazerBorder != sourceBorder && existingTrailblazerBorder != targetBorder)
+                {
+                    // 场上已有开拓者，且不是当前正在移动的自身，也不是要替换的目标格子，则不允许放置
+                    var targetImageToCheck = GetBoardImage(targetBorder);
+                    var targetNameToCheck = GetNameFromTag(targetImageToCheck?.Tag);
+                    if (targetNameToCheck != "开拓者•欢愉" && targetNameToCheck != "开拓者•记忆")
+                    {
+                        return;
+                    }
+                }
+            }
+
             var sourcePanel = e.Data.Get("source-panel") as Panel;
             var sourcePanelItem = e.Data.Get("source-panel-item") as Control;
             var draggedImage = e.Data.Get("dragged-image") as Image;
@@ -381,7 +424,7 @@ namespace CurrencyWarsTool.Views
                     var targetEquipmentBonds = GetEquipmentBondsFromTag(targetImage.Tag);
                     var targetEquipment = GetEquipmentFilesFromTag(targetImage.Tag);
                     sourceBorder.Child = CreateBoardContent(targetImage.Source, targetName, targetPosition, targetCost, targetBaseBonds, targetEquipmentBonds, targetEquipment);
-                    UpdateBorderForPlacement(sourceBorder, targetPosition, targetCost);
+                    UpdateBorderForPlacement(sourceBorder, targetPosition, targetCost, targetName, targetBaseBonds, targetEquipmentBonds);
                     swappedToSource = true;
                 }
                 else if (sourcePanel is not null)
@@ -426,7 +469,7 @@ namespace CurrencyWarsTool.Views
             var equipmentBonds = GetEquipmentBondsFromTag(e.Data.Get("image-equipment-bonds"));
             var equipmentFiles = GetEquipmentFilesFromTag(e.Data.Get("image-equipment"));
             targetBorder.Child = CreateBoardContent(imageSource, name, position, cost, baseBonds, equipmentBonds, equipmentFiles);
-            UpdateBorderForPlacement(targetBorder, position, cost);
+            UpdateBorderForPlacement(targetBorder, position, cost, name, baseBonds, equipmentBonds);
             UpdateBondsSummary();
             UpdateBoardCount();
         }
@@ -493,7 +536,7 @@ namespace CurrencyWarsTool.Views
 
             if (equipmentFiles is not null)
             {
-                foreach (var file in equipmentFiles.Take(3))
+                foreach (var file in equipmentFiles)
                 {
                     equipmentPanel.Children.Add(CreateEquipmentBadge(file));
                 }
@@ -536,7 +579,7 @@ namespace CurrencyWarsTool.Views
 
             if (equipmentFiles is not null)
             {
-                foreach (var file in equipmentFiles.Take(3))
+                foreach (var file in equipmentFiles)
                 {
                     equipmentPanel.Children.Add(CreateEquipmentBadge(file));
                 }
@@ -594,7 +637,7 @@ namespace CurrencyWarsTool.Views
             }
         }
 
-        private void UpdateBorderForPlacement(Border border, int? position, int? cost)
+        private void UpdateBorderForPlacement(Border border, int? position, int? cost, string? name = null, IReadOnlyList<string>? baseBonds = null, IReadOnlyList<string>? equipmentBonds = null)
         {
             // 更新棋盘格子高亮
             var row = GetPositionFromTag(border.Tag);
@@ -604,6 +647,13 @@ namespace CurrencyWarsTool.Views
                 1 => row == 0,
                 _ => false
             };
+
+            // 星海游侠后台免罚
+            var allBonds = CombineBonds(baseBonds, equipmentBonds);
+            if (allBonds != null && allBonds.Contains("巡海游侠"))
+            {
+                shouldHighlight = false;
+            }
 
             border.Background = shouldHighlight ? Brushes.Red : GetBrushForCost(cost);
         }
@@ -879,7 +929,7 @@ namespace CurrencyWarsTool.Views
             };
         }
 
-        private void AddEquipmentBonds(Border targetBorder, Image targetImage, IReadOnlyList<string> equipmentBonds, string? equipmentFile, bool isClearTool)
+        private void AddEquipmentBonds(Border targetBorder, Image targetImage, IReadOnlyList<string> equipmentBonds, string? equipmentFile, string? equipmentName, bool isClearTool)
         {
             // 处理装备绑定与清除
             if (targetImage.Tag is not ImageMetadata metadata)
@@ -900,11 +950,39 @@ namespace CurrencyWarsTool.Views
                 ? new List<string>(equipmentBonds)
                 : new List<string>(metadata.EquipmentBonds.Concat(equipmentBonds));
 
-            if (equipmentBonds.Any(bond =>
-                    (metadata.BaseBonds?.Contains(bond) == true) ||
-                    (metadata.EquipmentBonds?.Contains(bond) == true)))
+            var isSpecialTapeEquip = equipmentName == StellarHunterCassetteName || equipmentName == JoyTapeName;
+            var hasJoyTape = metadata.EquipmentFiles?.Contains(JoyTapeFile) == true;
+            var hasHunterTape = metadata.EquipmentFiles?.Contains(StellarHunterCassetteFile) == true;
+
+            bool hasConflict = false;
+            if (!isSpecialTapeEquip)
             {
-                // 避免装备羁绊与已有羁绊冲突
+                foreach (var bond in equipmentBonds)
+                {
+                    bool inBase = metadata.BaseBonds?.Contains(bond) == true;
+                    int equipCount = metadata.EquipmentBonds?.Count(b => b == bond) ?? 0;
+
+                    if (inBase || equipCount > 0)
+                    {
+                        // 如果因为佩戴了卡带而导致属性重复，需要特殊放开
+                        // 因为卡带仅提供星核猎手/欢愉，如果要给其星徽，势必其装备的羁绊已包含同名
+                        if ((bond == "欢愉" && hasJoyTape) || (bond == "星核猎手" && hasHunterTape))
+                        {
+                             // 只有1层装备提供的对应羁绊时（也就是卡带本身提供的），允许此重复，豁免星徽的佩戴冲突
+                             if (equipCount == 1 && !inBase)
+                             {
+                                 continue;
+                             }
+                        }
+
+                        hasConflict = true;
+                        break;
+                    }
+                }
+            }
+
+            if (hasConflict)
+            {
                 return;
             }
 
@@ -912,18 +990,26 @@ namespace CurrencyWarsTool.Views
                 ? new List<string>()
                 : new List<string>(metadata.EquipmentFiles);
 
-            if (!string.IsNullOrWhiteSpace(equipmentFile) && updatedEquipment.Count < 3)
+            if (!string.IsNullOrWhiteSpace(equipmentFile))
             {
-                // 限制最多 3 个装备
+                var isSpecialTape = equipmentFile == JoyTapeFile || equipmentFile == StellarHunterCassetteFile;
+                var hasSpecialTape = updatedEquipment.Contains(JoyTapeFile) || updatedEquipment.Contains(StellarHunterCassetteFile);
+                if (isSpecialTape && hasSpecialTape)
+                {
+                    return;
+                }
+
+                var normalEquipmentCount = updatedEquipment.Count(f => f != JoyTapeFile && f != StellarHunterCassetteFile);
+                if (!isSpecialTape && normalEquipmentCount >= 3)
+                {
+                    return;
+                }
+
                 updatedEquipment.Add(equipmentFile);
-            }
-            else if (!string.IsNullOrWhiteSpace(equipmentFile))
-            {
-                return;
             }
 
             targetImage.Tag = new ImageMetadata(metadata.Name, metadata.Position, metadata.Cost, metadata.BaseBonds, updatedEquipmentBonds, updatedEquipment);
-            if (boardEquipmentPanel is not null && !string.IsNullOrWhiteSpace(equipmentFile) && updatedEquipment.Count <= 3)
+            if (boardEquipmentPanel is not null && !string.IsNullOrWhiteSpace(equipmentFile))
             {
                 boardEquipmentPanel.Children.Add(CreateEquipmentBadge(equipmentFile));
             }

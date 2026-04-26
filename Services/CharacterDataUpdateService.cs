@@ -72,7 +72,7 @@ public sealed class CharacterDataUpdateService
                 continue;
             }
 
-            var cost = ParseIntOrDefault(row.GetAttributeValue("data-param6", "0"), 0);
+            var cost = ParseIntOrDefault(row.GetAttributeValue("data-param6", "0"), 5);
             var bonds = ParseBonds(row.GetAttributeValue("data-param5", string.Empty));
             var position = ParsePosition(row.GetAttributeValue("data-param2", string.Empty));
 

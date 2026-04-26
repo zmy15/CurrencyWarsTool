@@ -138,5 +138,26 @@
             "银河学者"
         ],
         "file": "avares://CurrencyWarsTool/Assets/equipment/银河学者星徽.png"
+    },
+    {
+        "name": "欢愉星徽",
+        "bonds": [
+            "欢愉"
+        ],
+        "file": "avares://CurrencyWarsTool/Assets/equipment/欢愉星徽.png"
+    },
+    {
+        "name": "欢愉卡带",
+        "bonds": [
+            "欢愉"
+        ],
+        "file": "avares://CurrencyWarsTool/Assets/equipment/欢愉卡带.png"
+    },
+    {
+        "name": "星核猎手卡带",
+        "bonds": [
+            "星核猎手"
+        ],
+        "file": "avares://CurrencyWarsTool/Assets/equipment/星核猎手卡带.png"
     }
 ]

@@ -19,12 +19,12 @@
     </Design.DataContext>
     <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center" LastChildFill="True">
         <StackPanel DockPanel.Dock="Left" Margin="0,0,24,0" Width="200">
-            <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Height="600">
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Height="800">
                 <StackPanel x:Name="BondsPanel" Spacing="8"/>
             </ScrollViewer>
         </StackPanel>
         <StackPanel DockPanel.Dock="Right" Margin="24,0,0,0" Width="200">
-            <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Height="650">
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Height="800">
                 <UniformGrid x:Name="EquipmentPanel" Columns="2"/>
             </ScrollViewer>
         </StackPanel>
