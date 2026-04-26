@@ -86,7 +86,7 @@
 	},
 	{
 		"name":"狼狩",
-		"activate":[3,5,7,9],
+		"activate":[3,5,6,8],
 		"file":"avares://CurrencyWarsTool/Assets/bonds/狼狩.png"
 	},
 	{
@@ -116,7 +116,7 @@
 	},
 	{
 		"name":"夜之半神",
-		"activate":[3,5,7,9],
+		"activate":[2,4,7,9],
 		"file":"avares://CurrencyWarsTool/Assets/bonds/夜之半神.png"
 	},
 	{
